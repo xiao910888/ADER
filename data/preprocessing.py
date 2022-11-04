@@ -6,6 +6,7 @@
 import argparse
 import os
 from util import *
+import numpy as np
 
 
 def str2bool(v):

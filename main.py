@@ -105,6 +105,8 @@ if __name__ == '__main__':
     parser.add_argument('--maxlen', default=50, type=int)
     parser.add_argument('--dropout_rate', default=0.3, type=float)
     parser.add_argument('--l2_emb', default=0.0, type=float)
+    #yy自己加的参数
+    parser.add_argument('--period', default=1, type=int) #从哪个周期开始训练
     args = parser.parse_args()
 
     # Set path
@@ -207,6 +209,8 @@ if __name__ == '__main__':
 
             # Initialize variables or reload from previous period
             saver = tf.train.Saver(max_to_keep=1)
+            if period == 1 and not args.joint and args.period > 1:
+                period = args.period
             if period > 1 and not args.joint:
                 saver.restore(sess, 'model/period%d/epoch=%d.ckpt' % (period - 1, best_epoch))
             else:
@@ -254,6 +258,8 @@ if __name__ == '__main__':
                                                   model.max_item: max_item,
                                                   model.dropout_rate: args.dropout_rate,
                                                   model.lr: args.lr})
+                    del seq, pos
+                    gc.collect()
 
                 if period > 1 and args.ewc:
                     # if use ewc, update saved variables and fisher for each epoch
@@ -311,6 +317,7 @@ if __name__ == '__main__':
                 logs.write(info + '\n')
                 fast_exemplar = exemplar.exemplars
                 del exemplar
+                gc.collect()
 
             # Save current item number for next cycle
             item_num_prev = max_item
